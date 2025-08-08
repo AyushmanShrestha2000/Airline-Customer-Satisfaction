@@ -122,14 +122,7 @@ except Exception as e:
 st.markdown('<h1 class="main-header"> Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
 st.markdown("### Predict passenger satisfaction based on flight experience")
 
-# Debug view (can be hidden in production)
-# with st.expander(" Model Debug Info", expanded=False):
-#     st.write("Expected features:", EXPECTED_FEATURES)
-#     if hasattr(model, 'feature_names_in_'):
-#         st.write("Model features:", list(model.feature_names_in_))
-#     st.write("Model type:", type(model))
-#     st.write("Scaler type:", type(scaler))
-#     st.write("Encoder classes:", encoder.classes_)
+
 
 # Create tabs
 tab1, tab2 = st.tabs([" Make Prediction", " Model Insights"])
