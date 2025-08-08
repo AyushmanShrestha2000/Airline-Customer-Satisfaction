@@ -84,7 +84,7 @@ def load_artifacts():
     # [Keep all your feature extraction code]
     
     return model, scaler, encoder, original_features
-I
+model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()  
 
 
 # Header
