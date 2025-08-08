@@ -12,7 +12,7 @@ import os
 # Set page config
 st.set_page_config(
     page_title="Airline Satisfaction Predictor",
-    page_icon="✈️",
+    page_icon="",
     layout="wide"
 )
 
@@ -89,11 +89,11 @@ I
 model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()
 
 # Header
-st.markdown('<h1 class="main-header">✈️ Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header"> Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
 st.markdown("### Predict passenger satisfaction based on flight experience")
 
 # Create tabs
-tab1, tab2 = st.tabs(["🔮 Make Prediction", "📊 Model Insights"])
+tab1, tab2 = st.tabs([" Make Prediction", " Model Insights"])
 
 with tab1:
     with st.form("prediction_form"):
@@ -171,9 +171,9 @@ with tab1:
             with st.container():
                 st.markdown("### Prediction Results")
                 if prediction == 1:
-                    st.success(f"✅ Predicted Satisfaction: Satisfied ({prediction_proba[1]*100:.1f}% confidence)")
+                    st.success(f" Predicted Satisfaction: Satisfied ({prediction_proba[1]*100:.1f}% confidence)")
                 else:
-                    st.error(f"❌ Predicted Satisfaction: Neutral/Dissatisfied ({prediction_proba[0]*100:.1f}% confidence)")
+                    st.error(f" Predicted Satisfaction: Neutral/Dissatisfied ({prediction_proba[0]*100:.1f}% confidence)")
                 
                 # Show probability breakdown
                 st.write("Probability Breakdown:")
@@ -196,7 +196,7 @@ with tab2:
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### 🏆 Best Model Performance")
+        st.markdown("###  Best Model Performance")
         st.markdown("""
         - **Model Type**: Random Forest
         - **Accuracy**: 94.3%
@@ -205,7 +205,7 @@ with tab2:
         - **F1 Score**: 94.2%
         """)
         
-        st.markdown("### 💡 Key Findings")
+        st.markdown("###  Key Findings")
         st.markdown("""
         - Flight delays (both departure and arrival) are top predictors of dissatisfaction
         - Business class passengers report 40% higher satisfaction
@@ -214,7 +214,7 @@ with tab2:
         """)
     
     with col2:
-        st.markdown("### 🔍 Feature Importance")
+        st.markdown("###  Feature Importance")
         if hasattr(model, 'feature_importances_'):
             try:
                 # Ensure we only use available features
@@ -267,7 +267,7 @@ with tab2:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
-    ✈️ Airline Passenger Satisfaction Predictor | Built with Streamlit | 
+     Airline Passenger Satisfaction Predictor | Built with Streamlit | 
     Data Source: Kaggle Airline Satisfaction Dataset
 </div>
 """, unsafe_allow_html=True)
