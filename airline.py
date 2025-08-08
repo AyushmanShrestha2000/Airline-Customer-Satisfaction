@@ -50,38 +50,38 @@ def load_artifacts():
     encoder_file_id = '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'  
     
     # Download files from Google Drive
-    def download_file_from_drive(file_id, output):
+    def download_file(file_id, output):
         url = f'https://drive.google.com/uc?id={file_id}'
-        gdown.download(url, output, quiet=False)
+        try:
+            gdown.download(url, output, quiet=False)
+            return True
+        except Exception as e:
+            st.error(f"Failed to download {output}: {str(e)}")
+            return False
     
-    # Download files 
-    if not os.path.exists('best_airline_model.pkl'):
-        download_file_from_drive(model_file_id, 'best_airline_model.pkl')
-    if not os.path.exists('airline_scaler.pkl'):
-        download_file_from_google_drive(scaler_file_id, 'airline_scaler.pkl')
-    if not os.path.exists('airline_label_encoder.pkl'):
-        download_file_from_google_drive(encoder_file_id, 'airline_label_encoder.pkl')
+    # Download files with progress indicators
+    with st.spinner('Loading model files...'):
+        if not os.path.exists('best_airline_model.pkl'):
+            if not download_file(model_file_id, 'best_airline_model.pkl'):
+                st.stop()
+        if not os.path.exists('airline_scaler.pkl'):
+            if not download_file(scaler_file_id, 'airline_scaler.pkl'):
+                st.stop()
+        if not os.path.exists('airline_label_encoder.pkl'):
+            if not download_file(encoder_file_id, 'airline_label_encoder.pkl'):
+                st.stop()
     
     # Load the files
-    model = joblib.load('best_airline_model.pkl')
-    scaler = joblib.load('airline_scaler.pkl')
-    encoder = joblib.load('airline_label_encoder.pkl')
+    try:
+        model = joblib.load('best_airline_model.pkl')
+        scaler = joblib.load('airline_scaler.pkl')
+        encoder = joblib.load('airline_label_encoder.pkl')
+    except Exception as e:
+        st.error(f"Failed to load model files: {str(e)}")
+        st.stop()
     
-    # Get features the model was trained with
-    if hasattr(model, 'feature_names_in_'):
-        original_features = list(model.feature_names_in_)
-    elif hasattr(scaler, 'feature_names_in_'):
-        original_features = list(scaler.feature_names_in_)
-    else:
-        original_features = [
-            'Unnamed: 0',
-            'Age', 'Flight Distance', 'Departure Delay in Minutes', 'Arrival Delay in Minutes',
-            'Gender_Female', 'Gender_Male', 'Customer Type_Loyal Customer', 'Customer Type_disloyal Customer',
-            'Type of Travel_Business travel', 'Type of Travel_Personal Travel', 'Class_Business', 'Class_Eco', 'Class_Eco Plus',
-            'Seat comfort', 'Departure/Arrival time convenient', 'Food and drink', 'Gate location', 
-            'Inflight wifi service', 'Inflight entertainment', 'Inflight service', 'Ease of Online booking',
-            'On-board service', 'Leg room service', 'Baggage handling', 'Checkin service', 'Cleanliness', 'Online boarding'
-        ]
+    # Rest of your function remains the same...
+    # [Keep all your feature extraction code]
     
     return model, scaler, encoder, original_features
 I
