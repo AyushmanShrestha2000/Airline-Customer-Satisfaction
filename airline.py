@@ -44,6 +44,25 @@ st.markdown("""
 # Load model and preprocessing objects 
 @st.cache_data
 def load_artifacts():
+    # Google Drive file IDs
+    model_file_id = '1998nsWAw5qyroBBOPVn20geDze-hknxD'
+    scaler_file_id = '1EFpNaC57_97TBj3gCCv7EGPAH6IVyfFd'  # Replace with actual IDs
+    encoder_file_id = '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'  # Replace with actual IDs
+    
+    # Download files from Google Drive
+    def download_file_from_drive(file_id, output):
+        url = f'https://drive.google.com/uc?id={file_id}'
+        gdown.download(url, output, quiet=False)
+    
+    # Download files (only if they don't exist locally)
+    if not os.path.exists('best_airline_model.pkl'):
+        download_file_from_drive(model_file_id, 'best_airline_model.pkl')
+    if not os.path.exists('airline_scaler.pkl'):
+        download_file_from_google_drive(scaler_file_id, 'airline_scaler.pkl')
+    if not os.path.exists('airline_label_encoder.pkl'):
+        download_file_from_google_drive(encoder_file_id, 'airline_label_encoder.pkl')
+    
+    # Load the files
     model = joblib.load('best_airline_model.pkl')
     scaler = joblib.load('airline_scaler.pkl')
     encoder = joblib.load('airline_label_encoder.pkl')
@@ -55,7 +74,7 @@ def load_artifacts():
         original_features = list(scaler.feature_names_in_)
     else:
         original_features = [
-            'Unnamed: 0',  # Include it since model expects it
+            'Unnamed: 0',
             'Age', 'Flight Distance', 'Departure Delay in Minutes', 'Arrival Delay in Minutes',
             'Gender_Female', 'Gender_Male', 'Customer Type_Loyal Customer', 'Customer Type_disloyal Customer',
             'Type of Travel_Business travel', 'Type of Travel_Personal Travel', 'Class_Business', 'Class_Eco', 'Class_Eco Plus',
@@ -65,6 +84,7 @@ def load_artifacts():
         ]
     
     return model, scaler, encoder, original_features
+I
 
 model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()
 
