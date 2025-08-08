@@ -21,13 +21,13 @@ Clone the repository:
 git clone https://github.com/AyushmanShrestha2000/Airline-Customer-Satisfaction
 cd airline-satisfaction-prediction
 
-## Install dependencies:
+# Install dependencies:
 - pip install -r requirements.txt
 
-## Run the application:
+# Run the application:
 - streamlit run app.py
 
-## File Structure:
+# File Structure:
 airline-satisfaction-prediction/
 ├── app.py # Main Streamlit application
 ├── Airline_train.csv # Passenger dataset
