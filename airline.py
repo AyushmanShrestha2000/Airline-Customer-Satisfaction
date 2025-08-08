@@ -46,15 +46,15 @@ st.markdown("""
 def load_artifacts():
     # Google Drive file IDs
     model_file_id = '1998nsWAw5qyroBBOPVn20geDze-hknxD'
-    scaler_file_id = '1EFpNaC57_97TBj3gCCv7EGPAH6IVyfFd'  # Replace with actual IDs
-    encoder_file_id = '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'  # Replace with actual IDs
+    scaler_file_id = '1EFpNaC57_97TBj3gCCv7EGPAH6IVyfFd'  
+    encoder_file_id = '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'  
     
     # Download files from Google Drive
     def download_file_from_drive(file_id, output):
         url = f'https://drive.google.com/uc?id={file_id}'
         gdown.download(url, output, quiet=False)
     
-    # Download files (only if they don't exist locally)
+    # Download files 
     if not os.path.exists('best_airline_model.pkl'):
         download_file_from_drive(model_file_id, 'best_airline_model.pkl')
     if not os.path.exists('airline_scaler.pkl'):
@@ -237,7 +237,7 @@ with tab2:
                 )
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # Display as bullet points for mobile users
+                
                 with st.expander("View as list"):
                     for idx, row in importance_df.iterrows():
                         st.markdown(f"- **{row['Feature']}**: {row['Importance']:.3f}")
