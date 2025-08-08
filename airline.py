@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 import joblib
 import plotly.express as px
-from sklearn.preprocessing import StandardScaler
 import gdown
 import os
+from sklearn.preprocessing import StandardScaler
 
 # Set page config
 st.set_page_config(
@@ -36,73 +36,100 @@ st.markdown("""
     .feature-importance {
         font-size: 0.9rem;
     }
+    .stSpinner > div {
+        text-align: center;
+        margin-top: 20px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Load model and preprocessing objects 
+# Load model and preprocessing objects from Google Drive
 @st.cache_data
 def load_artifacts():
     # Google Drive file IDs
-    model_file_id = '1998nsWAw5qyroBBOPVn20geDze-hknxD'
-    scaler_file_id = '1EFpNaC57_97TBj3gCCv7EGPAH6IVyfFd'  
-    encoder_file_id = '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'  
+    file_ids = {
+        'model': '1998nsWAw5qyroBBOPVn20geDze-hknxD',
+        'scaler': '1EFpNaC57_97TBj3gCCv7EGPAH6IVyfFd',
+        'encoder': '1mumuM82MhlnPhwggAPCnAqXIONzAsTIy'
+    }
+    
+    # File paths
+    file_paths = {
+        'model': 'best_airline_model.pkl',
+        'scaler': 'airline_scaler.pkl',
+        'encoder': 'airline_label_encoder.pkl'
+    }
     
     # Download files from Google Drive
-    def download_file(file_id, output):
-        url = f'https://drive.google.com/uc?id={file_id}'
+    def download_file(file_id, output_path):
         try:
-            gdown.download(url, output, quiet=False)
+            url = f'https://drive.google.com/uc?id={file_id}'
+            gdown.download(url, output_path, quiet=False)
+            if not os.path.exists(output_path):
+                raise FileNotFoundError(f"Download failed for {output_path}")
             return True
         except Exception as e:
-            st.error(f"Failed to download {output}: {str(e)}")
+            st.error(f"❌ Failed to download {output_path}: {str(e)}")
             return False
     
-    # Download files with progress indicators
-    with st.spinner('Loading model files...'):
-        if not os.path.exists('best_airline_model.pkl'):
-            if not download_file(model_file_id, 'best_airline_model.pkl'):
-                st.stop()
-        if not os.path.exists('airline_scaler.pkl'):
-            if not download_file(scaler_file_id, 'airline_scaler.pkl'):
-                st.stop()
-        if not os.path.exists('airline_label_encoder.pkl'):
-            if not download_file(encoder_file_id, 'airline_label_encoder.pkl'):
-                st.stop()
+    # Download all files with progress
+    with st.spinner('🚀 Downloading model files from Google Drive... This may take a moment for large files'):
+        for name in file_ids:
+            if not os.path.exists(file_paths[name]):
+                if not download_file(file_ids[name], file_paths[name]):
+                    st.stop()
     
-    # Load the files
+    # Load artifacts
     try:
-        model = joblib.load('best_airline_model.pkl')
-        scaler = joblib.load('airline_scaler.pkl')
-        encoder = joblib.load('airline_label_encoder.pkl')
+        model = joblib.load(file_paths['model'])
+        scaler = joblib.load(file_paths['scaler'])
+        encoder = joblib.load(file_paths['encoder'])
+        
+        # Get feature names (handle different sklearn versions)
+        if hasattr(model, 'feature_names_in_'):
+            features = list(model.feature_names_in_)
+        elif hasattr(scaler, 'feature_names_in_'):
+            features = list(scaler.feature_names_in_)
+        else:
+            features = [
+                'Unnamed: 0', 'Age', 'Flight Distance', 'Departure Delay in Minutes',
+                'Arrival Delay in Minutes', 'Gender_Female', 'Gender_Male',
+                'Customer Type_Loyal Customer', 'Customer Type_disloyal Customer',
+                'Type of Travel_Business travel', 'Type of Travel_Personal Travel',
+                'Class_Business', 'Class_Eco', 'Class_Eco Plus', 'Seat comfort',
+                'Departure/Arrival time convenient', 'Food and drink', 'Gate location',
+                'Inflight wifi service', 'Inflight entertainment', 'Inflight service',
+                'Ease of Online booking', 'On-board service', 'Leg room service',
+                'Baggage handling', 'Checkin service', 'Cleanliness', 'Online boarding'
+            ]
+            
+        return model, scaler, encoder, features
+        
     except Exception as e:
-        st.error(f"Failed to load model files: {str(e)}")
+        st.error(f"🔥 Failed to load model artifacts: {str(e)}")
         st.stop()
-    
-    # Define the expected features
-    original_features = [
-        'Unnamed: 0',
-        'Age', 'Flight Distance', 'Departure Delay in Minutes', 'Arrival Delay in Minutes',
-        'Gender_Female', 'Gender_Male', 'Customer Type_Loyal Customer', 'Customer Type_disloyal Customer',
-        'Type of Travel_Business travel', 'Type of Travel_Personal Travel', 'Class_Business', 'Class_Eco', 'Class_Eco Plus',
-        'Seat comfort', 'Departure/Arrival time convenient', 'Food and drink', 'Gate location', 
-        'Inflight wifi service', 'Inflight entertainment', 'Inflight service', 'Ease of Online booking',
-        'On-board service', 'Leg room service', 'Baggage handling', 'Checkin service', 'Cleanliness', 'Online boarding'
-    ]
-    
-    return model, scaler, encoder, original_features
 
-# Load artifacts with error handling
+# Initialize app
 try:
     model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()
     st.session_state['model_loaded'] = True
 except Exception as e:
-    st.error(f"Failed to initialize application: {str(e)}")
+    st.error(f"❌ App initialization failed: {str(e)}")
     st.session_state['model_loaded'] = False
     st.stop()
 
 # Header
 st.markdown('<h1 class="main-header">✈️ Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
 st.markdown("### Predict passenger satisfaction based on flight experience")
+
+# Debug view (can be hidden in production)
+with st.expander("🔍 Model Debug Info", expanded=False):
+    st.write("Expected features:", EXPECTED_FEATURES)
+    if hasattr(model, 'feature_names_in_'):
+        st.write("Model features:", list(model.feature_names_in_))
+    st.write("Model type:", type(model))
+    st.write("Scaler type:", type(scaler))
+    st.write("Encoder classes:", encoder.classes_)
 
 # Create tabs
 tab1, tab2 = st.tabs(["🔮 Make Prediction", "📊 Model Insights"])
@@ -138,9 +165,9 @@ with tab1:
         submitted = st.form_submit_button("Predict Satisfaction")
 
     if submitted:
-        # Prepare input data
+        # Prepare input data with correct feature order
         input_data = {
-            'Unnamed: 0': 0,  # Dummy value for the index column
+            'Unnamed: 0': 0,
             'Age': age,
             'Flight Distance': flight_distance,
             'Departure Delay in Minutes': departure_delay,
@@ -170,8 +197,8 @@ with tab1:
             'Online boarding': 3
         }
         
-        # Create DataFrame
-        input_df = pd.DataFrame([input_data])[EXPECTED_FEATURES]
+        # Create DataFrame with enforced column order
+        input_df = pd.DataFrame([input_data], columns=EXPECTED_FEATURES)
         
         try:
             # Scale and predict
@@ -201,6 +228,8 @@ with tab1:
                 st.write("Features expected by model:", EXPECTED_FEATURES)
                 st.write("Features provided:", input_df.columns.tolist())
                 st.write("First row of data:", input_df.iloc[0].to_dict())
+                if hasattr(model, 'feature_names_in_'):
+                    st.write("Model was trained with features:", list(model.feature_names_in_))
 
 with tab2:
     if not st.session_state.get('model_loaded', False):
