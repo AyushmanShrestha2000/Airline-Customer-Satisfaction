@@ -7,12 +7,10 @@ from sklearn.preprocessing import StandardScaler
 import gdown
 import os
 
-
-
 # Set page config
 st.set_page_config(
     page_title="Airline Satisfaction Predictor",
-    page_icon="",
+    page_icon="✈️",
     layout="wide"
 )
 
@@ -80,17 +78,34 @@ def load_artifacts():
         st.error(f"Failed to load model files: {str(e)}")
         st.stop()
     
-    # Rest of your function remains the same...
-    # [Keep all your feature extraction code]
+    # Define the expected features
+    original_features = [
+        'Unnamed: 0',
+        'Age', 'Flight Distance', 'Departure Delay in Minutes', 'Arrival Delay in Minutes',
+        'Gender_Female', 'Gender_Male', 'Customer Type_Loyal Customer', 'Customer Type_disloyal Customer',
+        'Type of Travel_Business travel', 'Type of Travel_Personal Travel', 'Class_Business', 'Class_Eco', 'Class_Eco Plus',
+        'Seat comfort', 'Departure/Arrival time convenient', 'Food and drink', 'Gate location', 
+        'Inflight wifi service', 'Inflight entertainment', 'Inflight service', 'Ease of Online booking',
+        'On-board service', 'Leg room service', 'Baggage handling', 'Checkin service', 'Cleanliness', 'Online boarding'
+    ]
     
     return model, scaler, encoder, original_features
 
+# Load artifacts with error handling
+try:
+    model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()
+    st.session_state['model_loaded'] = True
+except Exception as e:
+    st.error(f"Failed to initialize application: {str(e)}")
+    st.session_state['model_loaded'] = False
+    st.stop()
+
 # Header
-st.markdown('<h1 class="main-header"> Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">✈️ Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
 st.markdown("### Predict passenger satisfaction based on flight experience")
 
 # Create tabs
-tab1, tab2 = st.tabs([" Make Prediction", " Model Insights"])
+tab1, tab2 = st.tabs(["🔮 Make Prediction", "📊 Model Insights"])
 
 with tab1:
     with st.form("prediction_form"):
@@ -168,9 +183,9 @@ with tab1:
             with st.container():
                 st.markdown("### Prediction Results")
                 if prediction == 1:
-                    st.success(f" Predicted Satisfaction: Satisfied ({prediction_proba[1]*100:.1f}% confidence)")
+                    st.success(f"✅ Predicted Satisfaction: Satisfied ({prediction_proba[1]*100:.1f}% confidence)")
                 else:
-                    st.error(f" Predicted Satisfaction: Neutral/Dissatisfied ({prediction_proba[0]*100:.1f}% confidence)")
+                    st.error(f"❌ Predicted Satisfaction: Neutral/Dissatisfied ({prediction_proba[0]*100:.1f}% confidence)")
                 
                 # Show probability breakdown
                 st.write("Probability Breakdown:")
@@ -188,83 +203,86 @@ with tab1:
                 st.write("First row of data:", input_df.iloc[0].to_dict())
 
 with tab2:
-    st.subheader("Model Performance and Insights")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("###  Best Model Performance")
-        st.markdown("""
-        - **Model Type**: Random Forest
-        - **Accuracy**: 94.3%
-        - **Precision**: 94.1%
-        - **Recall**: 94.3%
-        - **F1 Score**: 94.2%
-        """)
+    if not st.session_state.get('model_loaded', False):
+        st.error("Model not loaded - cannot show insights")
+    else:
+        st.subheader("Model Performance and Insights")
         
-        st.markdown("###  Key Findings")
-        st.markdown("""
-        - Flight delays (both departure and arrival) are top predictors of dissatisfaction
-        - Business class passengers report 40% higher satisfaction
-        - Seat comfort and inflight service ratings are critical
-        - Cleanliness scores strongly correlate with overall satisfaction
-        """)
-    
-    with col2:
-        st.markdown("###  Feature Importance")
-        if hasattr(model, 'feature_importances_'):
-            try:
-                # Ensure we only use available features
-                valid_features = [f for f in EXPECTED_FEATURES if f != 'Unnamed: 0']
-                importance_scores = model.feature_importances_[:len(valid_features)]
-                
-                importance_df = pd.DataFrame({
-                    'Feature': valid_features,
-                    'Importance': importance_scores
-                }).sort_values('Importance', ascending=False).head(10)
-                
-                fig = px.bar(
-                    importance_df,
-                    x='Importance',
-                    y='Feature',
-                    orientation='h',
-                    title='Top 10 Most Important Features',
-                    color='Importance',
-                    color_continuous_scale='Blues'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                
-                
-                with st.expander("View as list"):
-                    for idx, row in importance_df.iterrows():
-                        st.markdown(f"- **{row['Feature']}**: {row['Importance']:.3f}")
-                        
-            except Exception as e:
-                st.warning(f"Couldn't visualize feature importance: {str(e)}")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("### 🏆 Best Model Performance")
+            st.markdown("""
+            - **Model Type**: Random Forest
+            - **Accuracy**: 94.3%
+            - **Precision**: 94.1%
+            - **Recall**: 94.3%
+            - **F1 Score**: 94.2%
+            """)
+            
+            st.markdown("### 💡 Key Findings")
+            st.markdown("""
+            - Flight delays (both departure and arrival) are top predictors of dissatisfaction
+            - Business class passengers report 40% higher satisfaction
+            - Seat comfort and inflight service ratings are critical
+            - Cleanliness scores strongly correlate with overall satisfaction
+            """)
+        
+        with col2:
+            st.markdown("### 🔍 Feature Importance")
+            if hasattr(model, 'feature_importances_'):
+                try:
+                    # Ensure we only use available features
+                    valid_features = [f for f in EXPECTED_FEATURES if f != 'Unnamed: 0']
+                    importance_scores = model.feature_importances_[:len(valid_features)]
+                    
+                    importance_df = pd.DataFrame({
+                        'Feature': valid_features,
+                        'Importance': importance_scores
+                    }).sort_values('Importance', ascending=False).head(10)
+                    
+                    fig = px.bar(
+                        importance_df,
+                        x='Importance',
+                        y='Feature',
+                        orientation='h',
+                        title='Top 10 Most Important Features',
+                        color='Importance',
+                        color_continuous_scale='Blues'
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Display as bullet points for mobile users
+                    with st.expander("View as list"):
+                        for idx, row in importance_df.iterrows():
+                            st.markdown(f"- **{row['Feature']}**: {row['Importance']:.3f}")
+                            
+                except Exception as e:
+                    st.warning(f"Couldn't visualize feature importance: {str(e)}")
+                    st.markdown("""
+                    **Top influential factors** (based on model analysis):
+                    1. Flight Distance
+                    2. Departure/Arrival Delays  
+                    3. Seat Comfort Ratings
+                    4. Inflight Service Quality
+                    5. Cleanliness Scores
+                    """)
+            else:
+                st.info("Feature importance not available for this model type")
                 st.markdown("""
-                **Top influential factors** (based on model analysis):
+                **Key influential factors** (from EDA):
                 1. Flight Distance
                 2. Departure/Arrival Delays  
                 3. Seat Comfort Ratings
                 4. Inflight Service Quality
                 5. Cleanliness Scores
                 """)
-        else:
-            st.info("Feature importance not available for this model type")
-            st.markdown("""
-            **Key influential factors** (from EDA):
-            1. Flight Distance
-            2. Departure/Arrival Delays  
-            3. Seat Comfort Ratings
-            4. Inflight Service Quality
-            5. Cleanliness Scores
-            """)
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
-     Airline Passenger Satisfaction Predictor | Built with Streamlit | 
+    ✈️ Airline Passenger Satisfaction Predictor | Built with Streamlit | 
     Data Source: Kaggle Airline Satisfaction Dataset
 </div>
 """, unsafe_allow_html=True)
