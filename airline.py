@@ -86,7 +86,6 @@ def load_artifacts():
     return model, scaler, encoder, original_features
 I
 
-model, scaler, encoder, EXPECTED_FEATURES = load_artifacts()
 
 # Header
 st.markdown('<h1 class="main-header"> Airline Passenger Satisfaction Predictor</h1>', unsafe_allow_html=True)
